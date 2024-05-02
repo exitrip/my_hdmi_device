@@ -1,0 +1,13 @@
+FAMILY  = artix7
+PART = xc7a50tfgg484-1
+BOARD   = colorlight-i9+
+JTAG_LINK = --board ${BOARD} --cable ch347_jtag
+XDC = colorlight_i9plus.xdc
+PROJECT = chip_balls
+ADDITIONAL_SOURCES = tmds_encoder.v \
+					my_vga_clk_generator.v \
+					ball.v \
+					hdmi_device.v \
+					lfsr.v\
+
+include ./openXC7.mk

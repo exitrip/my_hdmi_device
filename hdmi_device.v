@@ -33,8 +33,8 @@ module hdmi_device(
            output [OUT_TMDS_MSB:0] out_tmds_clk
        );
 
-parameter DDR_ENABLED = 0;
-localparam OUT_TMDS_MSB = DDR_ENABLED ? 1 : 0;
+parameter DDR_ENABLED = 1;
+localparam OUT_TMDS_MSB = 1;//DDR_ENABLED ? 1 : 0;
 
 /* */
 wire [9:0] tmds_red;

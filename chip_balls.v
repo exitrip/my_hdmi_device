@@ -914,7 +914,7 @@ wire clk_in2_clk_wiz_0;
     .CLKOUT0_DIVIDE       (10),
     .CLKOUT0_PHASE        (0.000),
     .CLKOUT0_DUTY_CYCLE   (0.500),
-    .CLKOUT1_DIVIDE       (8),
+    .CLKOUT1_DIVIDE       (DDR_ENABLED ? 8 : 4),
     .CLKOUT1_PHASE        (0.000),
     .CLKOUT1_DUTY_CYCLE   (0.500),
     .CLKIN1_PERIOD        (40.000))

@@ -16,7 +16,7 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 //`define ARTY7
-//`define I9PLUS
+`define I9PLUS
 //`define NANO_4K
 `ifdef ICOBOARD
   `define HX8X
@@ -75,7 +75,7 @@ localparam SYSTEM_CLK_MHZ = 25;
 `ifdef HX8X
 localparam DDR_HDMI_TRANSFER = 1;
 `elsif ARTY7
-localparam DDR_HDMI_TRANSFER = 0;
+localparam DDR_HDMI_TRANSFER = 1;
 `elsif I9PLUS
 localparam DDR_HDMI_TRANSFER = 0;
 `elsif NANO_4K
@@ -141,10 +141,10 @@ clk_tmds
 
 `elsif I9PLUS
 
-wire clk_25mhz;
+wire clk_100mhz;
 wire clk_x5;
 wire tmds_clk = clk_x5;
-wire pclk = clk_25mhz;
+wire pclk = clk_100mhz;
 wire locked;
 
 clk_tmds
@@ -924,18 +924,20 @@ wire clk_in2_clk_wiz_0;
  // Output buffering
   //-----------------------------------
 
-  BUFG clkf_buf
-   (.O (clkfbout_buf_clk_wiz_0),
-    .I (clkfbout_clk_wiz_0));
+   BUFG clkf_buf
+    (.O (clkfbout_buf_clk_wiz_0),
+     .I (clkfbout_clk_wiz_0));
+//assign clkfbout_buf_clk_wiz_0 = clkfbout_clk_wiz_0;
 
-  BUFG clkout1_buf
-   (.O   (clk_out1),
-    .I   (clk_out1_clk_wiz_0));
+   BUFG clkout1_buf
+    (.O   (clk_out1),
+     .I   (clk_out1_clk_wiz_0));
+//assign clk_out1 = clk_out1_clk_wiz_0;
 
-
-  BUFG clkout2_buf
-   (.O   (clk_out2),
-    .I   (clk_out2_clk_wiz_0));
+   BUFG clkout2_buf
+    (.O   (clk_out2),
+     .I   (clk_out2_clk_wiz_0));
+//assign clk_out2 = clk_out2_clk_wiz_0;
 
 endmodule
 

@@ -2,12 +2,12 @@
 # IO constraints
 ################################################################################
 # clk25:0
-set_property PACKAGE_PIN K4 [get_ports {clk_25mhz}]
-set_property IOSTANDARD LVCMOS33 [get_ports {clk_25mhz}]
+set_property PACKAGE_PIN K4 [get_ports clk_25mhz]
+set_property IOSTANDARD LVCMOS33 [get_ports clk_25mhz]
 
 # user_led:0
-set_property PACKAGE_PIN A18 [get_ports {led}]
-set_property IOSTANDARD LVCMOS33 [get_ports {led}]
+set_property PACKAGE_PIN A18 [get_ports led]
+set_property IOSTANDARD LVCMOS33 [get_ports led]
 # set_property DRIVE 12 [get_ports {led}]
 
 # # sdram_clock:0
@@ -22,14 +22,24 @@ set_property IOSTANDARD LVCMOS33 [get_ports {led}]
 # set_property LOC V5 [get_ports {serial_rx}]
 # set_property IOSTANDARD LVCMOS33 [get_ports {serial_rx}]
 
-set_property PACKAGE_PIN AB6 [get_ports {hdmi_p[0]}]
-set_property PACKAGE_PIN AA5 [get_ports {hdmi_n[0]}]
-set_property PACKAGE_PIN AB7 [get_ports {hdmi_p[1]}]
-set_property PACKAGE_PIN Y7 [get_ports {hdmi_n[1]}]
-set_property PACKAGE_PIN W7 [get_ports {hdmi_p[2]}]
-set_property PACKAGE_PIN Y8 [get_ports {hdmi_n[2]}]
-set_property PACKAGE_PIN AB5 [get_ports {hdmi_p[3]}]
-set_property PACKAGE_PIN AA4 [get_ports {hdmi_n[3]}]
+set_property OFFCHIP_TERM NONE [get_ports hdmi_n[3]]
+set_property OFFCHIP_TERM NONE [get_ports hdmi_n[2]]
+set_property OFFCHIP_TERM NONE [get_ports hdmi_n[1]]
+set_property OFFCHIP_TERM NONE [get_ports hdmi_n[0]]
+set_property OFFCHIP_TERM NONE [get_ports hdmi_p[3]]
+set_property OFFCHIP_TERM NONE [get_ports hdmi_p[2]]
+set_property OFFCHIP_TERM NONE [get_ports hdmi_p[1]]
+set_property OFFCHIP_TERM NONE [get_ports hdmi_p[0]]
+
+set_property PACKAGE_PIN AA5 [get_ports {hdmi_p[3]}]
+set_property PACKAGE_PIN AB5 [get_ports {hdmi_n[3]}]
+set_property PACKAGE_PIN Y4 [get_ports {hdmi_p[2]}]
+set_property PACKAGE_PIN AA4 [get_ports {hdmi_n[2]}]
+set_property PACKAGE_PIN W6 [get_ports {hdmi_p[1]}]
+set_property PACKAGE_PIN W5 [get_ports {hdmi_n[1]}]
+set_property PACKAGE_PIN AB7 [get_ports {hdmi_p[0]}]
+set_property PACKAGE_PIN AB6 [get_ports {hdmi_n[0]}]
+
 set_property IOSTANDARD TMDS_33 [get_ports {hdmi_p[0]}]
 set_property IOSTANDARD TMDS_33 [get_ports {hdmi_p[1]}]
 set_property IOSTANDARD TMDS_33 [get_ports {hdmi_p[2]}]
@@ -39,10 +49,6 @@ set_property IOSTANDARD TMDS_33 [get_ports {hdmi_n[1]}]
 set_property IOSTANDARD TMDS_33 [get_ports {hdmi_n[2]}]
 set_property IOSTANDARD TMDS_33 [get_ports {hdmi_n[3]}]
 
-set_property OFFCHIP_TERM NONE [get_ports hdmi_p[3]]
-set_property OFFCHIP_TERM NONE [get_ports hdmi_p[2]]
-set_property OFFCHIP_TERM NONE [get_ports hdmi_p[1]]
-set_property OFFCHIP_TERM NONE [get_ports hdmi_p[0]]
 
 # # sdram:0.a
 # set_property LOC C20 [get_ports {sdram_a[0]}]
@@ -299,7 +305,7 @@ set_property OFFCHIP_TERM NONE [get_ports hdmi_p[0]]
 ################################################################################
 
 
-create_clock -name clk_25mhz -period 40.0 -waveform {0.000 20.000} [get_ports clk_25mhz]
+create_clock -period 40.000 -name clk_25mhz -waveform {0.000 20.000} [get_ports clk_25mhz]
 
 # set_clock_groups -group [get_clocks -include_generated_clocks -of [get_nets sys_clk]] -group [get_clocks -include_generated_clocks -of [get_nets main_crg_clkin]] -asynchronous
 

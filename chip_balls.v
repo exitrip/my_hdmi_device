@@ -17,27 +17,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 //`define ARTY7
 `define I9PLUS
-//`define NANO_4K
-`ifdef ICOBOARD
-  `define HX8X
-`endif
-`ifdef BLACKICE_MX
-  `define HX8X
-`endif
+
 module chip_balls(
-`ifdef ICOBOARD
-           input clk_100mhz,
-           output [3:0] hdmi_p,
-           output [3:0] hdmi_n,
-           output reg [7:0] led,
-           output reg [2:0] led1 = 4'b101
-`elsif BLACKICE_MX
-           input clk_25mhz,
-           output [3:0] hdmi_p,
-           output [3:0] hdmi_n,
-           output reg [7:0] led,
-           output reg [3:0] led1 = 4'b1001
-`elsif ARTY7
+`ifdef ARTY7
            input clk_100mhz,
            output [3:0] hdmi_p,
            output [3:0] hdmi_n,
@@ -51,15 +33,6 @@ module chip_balls(
            input clk_25mhz,
            output [3:0] gpdi_dp,
            output led
-`elsif NANO_4K
-          input clk_27mhz,
-          output [3:0] hdmi_p,
-          output [3:0] hdmi_n,
-          output       led
-`else /* ulx3s */
-           input clk_25mhz,
-           output [3:0] gpdi_dp,
-           output [7:0] led
 `endif
        );
 
@@ -92,35 +65,7 @@ localparam frame_rate        = 60;
 `include "video_timings.v"
 
 // clock generator
-`ifdef BLACKICE_MX
-wire clk_x5;
-wire tmds_clk = clk_x5;
-wire pclk = clk_25mhz;
-wire locked;
-SB_PLL40_CORE #(
-                  .FEEDBACK_PATH ("SIMPLE"),
-                  .DIVR (4'b0000),
-                  .DIVF (7'b0100111),
-                  .DIVQ (3'b011),
-                  .FILTER_RANGE (3'b010)
-              ) uut (
-                  .RESETB         (1'b1),
-                  .BYPASS         (1'b0),
-                  .REFERENCECLK   (clk_25mhz),
-                  .PLLOUTGLOBAL   (clk_x5) // 5xpclk = 125MHz tmds clock
-              );
-`elsif ICOBOARD
-wire clk_x5;
-wire tmds_clk = clk_x5;
-wire pclk = clk_25mhz;
-wire locked;
-pll125 pll125_i(clk_100mhz, clk_x5, locked);
-reg [4:0] clk_25mhz = 5'b000_11;
-always @(posedge clk_x5) begin
-    clk_25mhz <= {clk_25mhz[0], clk_25mhz[4:1]};
-end
-assign pclk = clk_25mhz[0];
-`elsif ARTY7
+`ifdef ARTY7
 
 wire clk_25mhz;
 wire clk_x5;
@@ -141,10 +86,10 @@ clk_tmds
 
 `elsif I9PLUS
 
-wire clk_100mhz;
+wire pclk_25mhz;
 wire clk_x5;
 wire tmds_clk = clk_x5;
-wire pclk = clk_100mhz;
+wire pclk = pclk_25mhz;
 wire locked;
 
 clk_tmds
@@ -153,8 +98,8 @@ clk_tmds
     )
     clk_tmds_i
     (
+        pclk_25mhz,
         clk_x5,
-        clk_100mhz,
         clk_25mhz
     );
 
@@ -440,49 +385,8 @@ hdmi_device #(.DDR_ENABLED(DDR_HDMI_TRANSFER)) hdmi_device_i(
                 out_tmds_clk
             );
 
-`ifdef HX8X
-generate
-    if (DDR_HDMI_TRANSFER) begin /* we have no other choice as DDR */
-        SB_LVCMOS SB_LVCMOS_RED   (.DP(hdmi_p[2]), .DN(hdmi_n[2]), .clk_x5(tmds_clk), .tmds_signal(out_tmds_red));
-        SB_LVCMOS SB_LVCMOS_GREEN (.DP(hdmi_p[1]), .DN(hdmi_n[1]), .clk_x5(tmds_clk), .tmds_signal(out_tmds_green));
-        SB_LVCMOS SB_LVCMOS_BLUE  (.DP(hdmi_p[0]), .DN(hdmi_n[0]), .clk_x5(tmds_clk), .tmds_signal(out_tmds_blue));
-        SB_LVCMOS SB_LVCMOS_CLK   (.DP(hdmi_p[3]), .DN(hdmi_n[3]), .clk_x5(tmds_clk), .tmds_signal(out_tmds_clk));
-    end
-endgenerate
-`elsif NANO_4K
-  // DDR
- ODDR red_ddr_i   ( .CLK(tmds_clk), .D0(out_tmds_red[0]  )   , .D1(out_tmds_red[1] )     , .Q0(hdmi_p[2]));//, .Q1(hdmi_n[2]) );
- ODDR blue_ddr_i  ( .CLK(tmds_clk), .D0(out_tmds_blue[0] )   , .D1(out_tmds_blue[1])     , .Q0(hdmi_p[0]));//, .Q1(hdmi_n[0]) );
- ODDR green_ddr_i ( .CLK(tmds_clk), .D0(out_tmds_green[0])   , .D1(out_tmds_green[1] )   , .Q0(hdmi_p[1]));//, .Q1(hdmi_n[1]) );
- ODDR clk_ddr_i   ( .CLK(tmds_clk), .D0(out_tmds_clk[0]  )   , .D1(out_tmds_clk[1])      , .Q0(hdmi_p[3]));//, .Q1(hdmi_n[3]) );
- /*
- // SDR
- TLVDS_OBUF red_tlvds_obuf  (
-   .I(out_tmds_red),
-   .O(hdmi_p[2]),
-   .OB(hdmi_n[2])
- );
 
- TLVDS_OBUF blue_tlvds_obuf  (
-   .I(out_tmds_blue),
-   .O(hdmi_p[0]),
-   .OB(hdmi_n[0])
- );
-
- TLVDS_OBUF green_tlvds_obuf  (
-   .I(out_tmds_green),
-   .O(hdmi_p[1]),
-   .OB(hdmi_n[1])
- );
-
- TLVDS_OBUF clk_tlvds_obuf  (
-   .I(out_tmds_clk),
-   .O(hdmi_p[3]),
-   .OB(hdmi_n[3])
- );
- */
-
-`elsif ARTY7
+`ifdef ARTY7
 generate if (!DDR_HDMI_TRANSFER) begin
         OBUFDS OBUFDS_clock     (.I(out_tmds_clk),    .O(hdmi_p[3]), .OB(hdmi_n[3]));
         OBUFDS OBUFDS_red       (.I(out_tmds_red),    .O(hdmi_p[2]), .OB(hdmi_n[2]));
@@ -654,88 +558,10 @@ generate if (!DDR_HDMI_TRANSFER) begin
 //        OBUFDS OBUFDS_blue(.I(out_ddr_tmds_blue), .O(hdmi_p[0]), .OB(hdmi_n[0]));
     end endgenerate
 
-`else
-/* ulx3s can SDR and DDR */
-generate
-    if (DDR_HDMI_TRANSFER) begin
-        ODDRX1F ddr0_clock (.D0(out_tmds_clk   [0] ), .D1(out_tmds_clk   [1] ), .Q(gpdi_dp[3]), .SCLK(tmds_clk), .RST(0));
-        ODDRX1F ddr0_red   (.D0(out_tmds_red   [0] ), .D1(out_tmds_red   [1] ), .Q(gpdi_dp[2]), .SCLK(tmds_clk), .RST(0));
-        ODDRX1F ddr0_green (.D0(out_tmds_green [0] ), .D1(out_tmds_green [1] ), .Q(gpdi_dp[1]), .SCLK(tmds_clk), .RST(0));
-        ODDRX1F ddr0_blue  (.D0(out_tmds_blue  [0] ), .D1(out_tmds_blue  [1] ), .Q(gpdi_dp[0]), .SCLK(tmds_clk), .RST(0));
-    end else begin
-        assign gpdi_dp[3] = out_tmds_clk;
-        assign gpdi_dp[2] = out_tmds_red;
-        assign gpdi_dp[1] = out_tmds_green;
-        assign gpdi_dp[0] = out_tmds_blue;
-    end
-endgenerate
 `endif
 
 endmodule
 
-`ifdef HX8X
-    // LVDS Double Data RAGE (DDR) Output
-    module SB_LVCMOS(input DP, input DN, input clk_x5, input [1:0] tmds_signal);
-defparam tmds_p.PIN_TYPE = 6'b010000;
-defparam tmds_p.IO_STANDARD = "SB_LVCMOS";
-SB_IO tmds_p (
-          .PACKAGE_PIN (DP),
-          .CLOCK_ENABLE (1'b1),
-          .OUTPUT_CLK (clk_x5),
-          .OUTPUT_ENABLE (1'b1),
-          .D_OUT_0 (tmds_signal[1]),
-          .D_OUT_1 (tmds_signal[0])
-      );
-
-defparam tmds_n.PIN_TYPE = 6'b010000;
-defparam tmds_n.IO_STANDARD = "SB_LVCMOS";
-SB_IO tmds_n (
-          .PACKAGE_PIN (DN),
-          .CLOCK_ENABLE (1'b1),
-          .OUTPUT_CLK (clk_x5),
-          .OUTPUT_ENABLE (1'b1),
-          .D_OUT_0 (~tmds_signal[1]),
-          .D_OUT_1 (~tmds_signal[0])
-      );
-// D_OUT_0 and D_OUT_1 swapped?
-// https://github.com/YosysHQ/yosys/issues/330
-endmodule
-`endif
-`ifdef ICOBOARD
-    /**
-     * PLL configuration
-     *
-     * This Verilog module was generated automatically
-     * using the icepll tool from the IceStorm project.
-     * Use at your own risk.
-     *
-     * Given input frequency:       100.000 MHz
-     * Requested output frequency:  125.000 MHz
-     * Achieved output frequency:   125.000 MHz
-     */
-
-    module pll125(
-        input  clock_in,
-        output clock_out,
-        output locked
-    );
-
-SB_PLL40_CORE #(
-                  .FEEDBACK_PATH("SIMPLE"),
-                  .DIVR(4'b0000),         // DIVR =  0
-                  .DIVF(7'b0001001),      // DIVF =  9
-                  .DIVQ(3'b011),          // DIVQ =  3
-                  .FILTER_RANGE(3'b101)   // FILTER_RANGE = 5
-              ) uut (
-                  .LOCK(locked),
-                  .RESETB(1'b1),
-                  .BYPASS(1'b0),
-                  .REFERENCECLK(clock_in),
-                  .PLLOUTCORE(clock_out)
-              );
-
-endmodule
-`endif
 `ifdef ARTY7
 
     // 125MHz in DDR mode else 225 MHz and second clock always 25MHz
@@ -911,7 +737,7 @@ wire clk_in2_clk_wiz_0;
     .DIVCLK_DIVIDE        (1),
     .CLKFBOUT_MULT        (40),
     .CLKFBOUT_PHASE       (0.000),
-    .CLKOUT0_DIVIDE       (10),
+    .CLKOUT0_DIVIDE       (40),
     .CLKOUT0_PHASE        (0.000),
     .CLKOUT0_DUTY_CYCLE   (0.500),
     .CLKOUT1_DIVIDE       (DDR_ENABLED ? 8 : 4),

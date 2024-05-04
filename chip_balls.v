@@ -556,12 +556,27 @@ generate if (!DDR_HDMI_TRANSFER) begin
 
 `elsif I9PLUS
 generate if (!DDR_HDMI_TRANSFER) begin
-        OBUFDS OBUFDS_clock     (.I(out_tmds_clk),    .O(hdmi_p[3]), .OB(hdmi_n[3]));
-        OBUFDS OBUFDS_red       (.I(out_tmds_red),    .O(hdmi_p[2]), .OB(hdmi_n[2]));
-        OBUFDS OBUFDS_green     (.I(out_tmds_green),  .O(hdmi_p[1]), .OB(hdmi_n[1]));
-        OBUFDS OBUFDS_blue      (.I(out_tmds_blue),   .O(hdmi_p[0]), .OB(hdmi_n[0]));
+//        OBUFDS OBUFDS_clock     (.I(out_tmds_clk),    .O(hdmi_p[3]), .OB(hdmi_n[3]));
+//        OBUFDS OBUFDS_red       (.I(out_tmds_red),    .O(hdmi_p[2]), .OB(hdmi_n[2]));
+//        OBUFDS OBUFDS_green     (.I(out_tmds_green),  .O(hdmi_p[1]), .OB(hdmi_n[1]));
+//        OBUFDS OBUFDS_blue      (.I(out_tmds_blue),   .O(hdmi_p[0]), .OB(hdmi_n[0]));
+        wire out_tmds_clk_n, out_tmds_red_n, out_tmds_green_n, out_tmds_blue_n;
+        assign out_tmds_clk_n = ~out_tmds_clk;
+        assign out_tmds_red_n = ~out_tmds_red;
+        assign out_tmds_gree_n = ~out_tmds_green;
+        assign out_tmds_blue_n = ~out_tmds_blue;
+        OBUF OBUF_clock_p(.I(out_tmds_clk), .O(hdmi_p[3]));
+        OBUF OBUF_clock_n(.I(out_tmds_clk_n), .O(hdmi_n[3]));
+        OBUF OBUF_red_p(.I(out_tmds_red), .O(hdmi_p[2]));
+        OBUF OBUF_red_n(.I(out_tmds_red_n), .O(hdmi_n[2]));
+        OBUF OBUF_green_p(.I(out_tmds_green), .O(hdmi_p[1]));
+        OBUF OBUF_green_n(.I(out_tmds_green_n), .O(hdmi_n[1]));
+        OBUF OBUF_blue_p(.I(out_tmds_blue), .O(hdmi_p[0]));
+        OBUF OBUF_blue_n(.I(out_tmds_blue_n), .O(hdmi_n[0]));
+        
     end else begin
-        wire out_ddr_tmds_clk;
+        wire out_ddr_tmds_clk, out_ddr_tmds_clk_n;
+//        assign out_ddr_tmds_clk_n = ~out_ddr_tmds_clk;
         ODDR
             #(.DDR_CLK_EDGE   ("SAME_EDGE"), //"OPPOSITE_EDGE" "SAME_EDGE"
               .INIT           (1'b0),
@@ -575,9 +590,13 @@ generate if (!DDR_HDMI_TRANSFER) begin
                 .R ( 1'b0             ),
                 .S ( 1'b0             )
             );
-        OBUFDS OBUFDS_clock(.I(out_ddr_tmds_clk), .O(hdmi_p[3]), .OB(hdmi_n[3]));
-
-        wire out_ddr_tmds_red;
+        OBUFDS OBUFDS_clock(.I(out_ddr_tmds_clk), .O(hdmi_p[3]), .OB(out_ddr_tmds_clk_n));
+//        OBUF OBUF_clock_p(.I(out_ddr_tmds_clk), .O(hdmi_p[3]));
+        OBUF OBUF_clock_n(.I(out_ddr_tmds_clk_n), .O(hdmi_n[3]));
+//        OBUFDS OBUFDS_clock(.I(out_ddr_tmds_clk), .O(hdmi_p[3]), .OB(hdmi_n[3]));
+        
+        wire out_ddr_tmds_red, out_ddr_tmds_red_n;
+//        assign out_ddr_tmds_red_n = ~out_ddr_tmds_red;
         ODDR
             #(.DDR_CLK_EDGE   ("SAME_EDGE"), //"OPPOSITE_EDGE" "SAME_EDGE"
               .INIT           (1'b0),
@@ -591,9 +610,13 @@ generate if (!DDR_HDMI_TRANSFER) begin
                 .R ( 1'b0             ),
                 .S ( 1'b0             )
             );
-        OBUFDS OBUFDS_red(.I(out_ddr_tmds_red), .O(hdmi_p[2]), .OB(hdmi_n[2]));
+            OBUFDS OBUFDS_red(.I(out_ddr_tmds_red), .O(hdmi_p[2]), .OB(out_ddr_tmds_red_n));
+//        OBUF OBUF_red_p(.I(out_ddr_tmds_red), .O(hdmi_p[2]));
+        OBUF OBUF_red_n(.I(out_ddr_tmds_red_n), .O(hdmi_n[2]));
+//        OBUFDS OBUFDS_red(.I(out_ddr_tmds_red), .O(hdmi_p[2]), .OB(hdmi_n[2]));
 
-        wire out_ddr_tmds_green;
+        wire out_ddr_tmds_green, out_ddr_tmds_green_n;
+        assign out_ddr_tmds_green_n = ~out_ddr_tmds_green;
         ODDR
             #(.DDR_CLK_EDGE   ("SAME_EDGE"), //"OPPOSITE_EDGE" "SAME_EDGE"
               .INIT           (1'b0),
@@ -607,9 +630,12 @@ generate if (!DDR_HDMI_TRANSFER) begin
                 .R ( 1'b0                ),
                 .S ( 1'b0                )
             );
-        OBUFDS OBUFDS_green(.I(out_ddr_tmds_green), .O(hdmi_p[1]), .OB(hdmi_n[1]));
+        OBUF OBUF_green_p(.I(out_ddr_tmds_green), .O(hdmi_p[1]));
+        OBUF OBUF_green_n(.I(out_ddr_tmds_green_n), .O(hdmi_n[1]));
+//        OBUFDS OBUFDS_green(.I(out_ddr_tmds_green), .O(hdmi_p[1]), .OB(hdmi_n[1]));
 
-        wire out_ddr_tmds_blue;
+        wire out_ddr_tmds_blue, out_ddr_tmds_blue_n;
+        assign out_ddr_tmds_blue_n = ~out_ddr_tmds_blue;
         ODDR
             #(.DDR_CLK_EDGE   ("SAME_EDGE"), //"OPPOSITE_EDGE" "SAME_EDGE"
               .INIT           (1'b0),
@@ -623,7 +649,9 @@ generate if (!DDR_HDMI_TRANSFER) begin
                 .R ( 1'b0                ),
                 .S ( 1'b0                )
             );
-        OBUFDS OBUFDS_blue(.I(out_ddr_tmds_blue), .O(hdmi_p[0]), .OB(hdmi_n[0]));
+        OBUF OBUF_blue_p(.I(out_ddr_tmds_blue), .O(hdmi_p[0]));
+        OBUF OBUF_blue_n(.I(out_ddr_tmds_blue_n), .O(hdmi_n[0]));
+//        OBUFDS OBUFDS_blue(.I(out_ddr_tmds_blue), .O(hdmi_p[0]), .OB(hdmi_n[0]));
     end endgenerate
 
 `else
@@ -825,7 +853,7 @@ endmodule
 
 `ifdef I9PLUS
 
-    // 125MHz in DDR mode 
+    // 125MHz in DDR mode , 250 in SDR
 `timescale 1ps/1ps
 
 module clk_tmds

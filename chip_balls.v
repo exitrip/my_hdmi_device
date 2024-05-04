@@ -563,7 +563,7 @@ generate if (!DDR_HDMI_TRANSFER) begin
         wire out_tmds_clk_n, out_tmds_red_n, out_tmds_green_n, out_tmds_blue_n;
         assign out_tmds_clk_n = ~out_tmds_clk;
         assign out_tmds_red_n = ~out_tmds_red;
-        assign out_tmds_gree_n = ~out_tmds_green;
+        assign out_tmds_greenn = ~out_tmds_green;
         assign out_tmds_blue_n = ~out_tmds_blue;
         OBUF OBUF_clock_p(.I(out_tmds_clk), .O(hdmi_p[3]));
         OBUF OBUF_clock_n(.I(out_tmds_clk_n), .O(hdmi_n[3]));

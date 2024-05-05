@@ -20,6 +20,8 @@ module ball(
            input clk,
            input [10:0] i_vcnt,
            input [10:0] i_hcnt,
+           input [10:0] width,
+           input [10:0] height,
            input i_opposite,
            output reg o_draw
        );
@@ -28,8 +30,8 @@ parameter START_X = 0;
 parameter START_Y = 0;
 parameter DELTA_X = 1;
 parameter DELTA_Y = 1;
-parameter BALL_WIDTH = 30;
-parameter BALL_HEIGHT = 30;
+//parameter BALL_WIDTH = 30;
+//parameter BALL_HEIGHT = 30;
 parameter X_RES = 640;
 parameter Y_RES = 480;
 
@@ -38,11 +40,11 @@ wire [10:0] ball_ydiff = i_vcnt - ball_y;
 
 
 always @(posedge clk) begin
-    o_draw <= (ball_xdiff < BALL_WIDTH) && (ball_ydiff < BALL_HEIGHT);
+    o_draw <= (ball_xdiff < width) && (ball_ydiff < height);
 end
 
-wire ball_collision_x = (ball_x >= (X_RES - BALL_WIDTH));
-wire ball_collision_y = (ball_y >= (Y_RES - BALL_HEIGHT));
+wire ball_collision_x = (ball_x >= (X_RES - width));
+wire ball_collision_y = (ball_y >= (Y_RES - height));
 
 reg [10:0] ball_x = START_X;
 reg [10:0] ball_y = START_Y;

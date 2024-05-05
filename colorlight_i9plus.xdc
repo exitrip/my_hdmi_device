@@ -320,4 +320,4 @@ create_clock -period 40.000 -name clk_25mhz -waveform {0.000 20.000} [get_ports 
 
 # set_max_delay 2 -quiet -from [get_pins -filter {REF_PIN_NAME == C} -of_objects [get_cells -hierarchical -filter {ars_ff1 == TRUE}]] -to [get_pins -filter {REF_PIN_NAME == D} -of_objects [get_cells -hierarchical -filter {ars_ff2 == TRUE}]]
 
-set_property DRIVE 12 [get_ports led]
+# set_property DRIVE 12 [get_ports led]

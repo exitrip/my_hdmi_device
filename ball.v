@@ -35,8 +35,8 @@ parameter DELTA_Y = 1;
 parameter X_RES = 640;
 parameter Y_RES = 480;
 
-wire [10:0] ball_xdiff = i_hcnt - ball_x;
-wire [10:0] ball_ydiff = i_vcnt - ball_y;
+wire [10:0] ball_xdiff = i_hcnt - ball_x + i_hcnt[4:0];
+wire [10:0] ball_ydiff = i_vcnt - ball_y + i_vcnt[3:0];
 
 
 always @(posedge clk) begin

@@ -10,8 +10,8 @@ input clk,ena,rst,sload,sclear;
 input [WIDTH-1:0] sdata;
 
 reg inc_not_dec;
-output [WIDTH-1:0] q;
-reg [WIDTH-1:0] q;
+output reg [WIDTH-1:0] q;
+//reg [WIDTH-1:0] q;
 
 always @(posedge clk or posedge rst) begin
 	if (rst) q <= 0;
@@ -19,7 +19,7 @@ always @(posedge clk or posedge rst) begin
 		if (ena) begin
 			if (sclear) q <= 0;
 			else if (sload) q <= sdata;
-			else q <= q + (inc_not_dec ? 1'b1 : {WIDTH{1'b1}});
+			else q <= (inc_not_dec ? (q + 1'b1) : (q - 1'b1) );
 		end
 	end
 end

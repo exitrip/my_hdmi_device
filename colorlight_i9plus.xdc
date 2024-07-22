@@ -22,7 +22,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports led]
 # set_property LOC V5 [get_ports {serial_rx}]
 # set_property IOSTANDARD LVCMOS33 [get_ports {serial_rx}]
 
-# set_property OFFCHIP_TERM NONE [get_ports hdmi_n[3]]
+# set_property OFFCHIP_TERM NONE [get_ports hdmi_n[3]]oprj
 # set_property OFFCHIP_TERM NONE [get_ports hdmi_n[2]]
 # set_property OFFCHIP_TERM NONE [get_ports hdmi_n[1]]
 # set_property OFFCHIP_TERM NONE [get_ports hdmi_n[0]]
@@ -30,6 +30,27 @@ set_property IOSTANDARD LVCMOS33 [get_ports led]
 # set_property OFFCHIP_TERM NONE [get_ports hdmi_p[2]]
 # set_property OFFCHIP_TERM NONE [get_ports hdmi_p[1]]
 # set_property OFFCHIP_TERM NONE [get_ports hdmi_p[0]]
+
+
+#make_diff_pair_ports DVI0_p[0] DVI0_n[0]
+#make_diff_pair_ports DVI0_p[1] DVI0_n[1]
+#make_diff_pair_ports DVI0_p[2] DVI0_n[2]
+#make_diff_pair_ports DVI0_p[3] DVI0_n[3]
+
+set_property -dict {PACKAGE_PIN N13 IOSTANDARD TMDS_33 PULLTYPE PULLUP} [get_ports {DVI0_p[0]}]
+set_property -dict {PACKAGE_PIN N14 IOSTANDARD TMDS_33 PULLTYPE PULLUP} [get_ports {DVI0_n[0]}]
+
+set_property -dict {PACKAGE_PIN R18 IOSTANDARD TMDS_33 PULLTYPE PULLUP} [get_ports {DVI0_p[1]}]
+set_property -dict {PACKAGE_PIN T18 IOSTANDARD TMDS_33 PULLTYPE PULLUP} [get_ports {DVI0_n[1]}]
+
+set_property -dict {PACKAGE_PIN P16 IOSTANDARD TMDS_33 PULLTYPE PULLUP} [get_ports {DVI0_p[2]}]
+set_property -dict {PACKAGE_PIN R17 IOSTANDARD TMDS_33 PULLTYPE PULLUP} [get_ports {DVI0_n[2]}]
+
+set_property -dict {PACKAGE_PIN N18 IOSTANDARD TMDS_33 PULLTYPE PULLUP} [get_ports {TMDS_Clk_p}]
+set_property -dict {PACKAGE_PIN N19 IOSTANDARD TMDS_33 PULLTYPE PULLUP} [get_ports {TMDS_Clk_n}]
+
+set_property -dict {PACKAGE_PIN R19 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {P4sw[0]}]
+set_property -dict {PACKAGE_PIN AB21 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {P4sw[1]}]
 
 set_property PACKAGE_PIN AB5 [get_ports {hdmi_p[3]}]
 set_property PACKAGE_PIN AA4 [get_ports {hdmi_n[3]}]
@@ -41,14 +62,21 @@ set_property PACKAGE_PIN AB6 [get_ports {hdmi_p[0]}]
 set_property PACKAGE_PIN AA5 [get_ports {hdmi_n[0]}]
 
 set_property IOSTANDARD LVCMOS33 [get_ports {hdmi_p[0]}]
+#set_property SLEWRATE FAST [get_ports {hdmi_p[0]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {hdmi_p[1]}]
+#set_property SLEWRATE FAST [get_ports {hdmi_p[1]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {hdmi_p[2]}]
+#set_property SLEWRATE FAST [get_ports {hdmi_p[2]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {hdmi_p[3]}]
+#set_property SLEWRATE FAST [get_ports {hdmi_p[3]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {hdmi_n[0]}]
+#set_property SLEWRATE FAST [get_ports {hdmi_n[0]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {hdmi_n[1]}]
+#set_property SLEWRATE FAST [get_ports {hdmi_n[1]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {hdmi_n[2]}]
+#set_property SLEWRATE FAST [get_ports {hdmi_n[2]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {hdmi_n[3]}]
-
+#set_property SLEWRATE FAST [get_ports {hdmi_n[3]}]
 
 # # sdram:0.a
 # set_property LOC C20 [get_ports {sdram_a[0]}]
@@ -307,12 +335,17 @@ set_property IOSTANDARD LVCMOS33 [get_ports {hdmi_n[3]}]
 
 create_clock -period 40.000 -name clk_25mhz -waveform {0.000 20.000} [get_ports clk_25mhz]
 
-# set_clock_groups -group [get_clocks -include_generated_clocks -of [get_nets sys_clk]] -group [get_clocks -include_generated_clocks -of [get_nets main_crg_clkin]] -asynchronous
+#create_generated_clock -source [get_ports clk] -divide_by 500000 [get_pins clks/div_2_reg/Q]
+
+#set_clock_groups -group [get_clocks -include_generated_clocks -of [get_nets clk_25mhz]] -group [get_clocks -include_generated_clocks -of [get_nets pclk]] -asynchronous
 
 ################################################################################
 # False path constraints
 ################################################################################
-
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets dvi_in/U0/TMDS_ClockingX/CLK_IN_hdmi_clk]
+set_property CLOCK_DEDICATED_ROUTE ANY_CMT_COLUMN [get_nets dvi_in/U0/TMDS_ClockingX/CLK_OUT_5x_hdmi_clk]
+#set_property CLOCK_REGION X0Y2 [get_cells {clk_p_buf}]
+#set_property CLOCK_REGION X0Y2 [get_cells {clk_n_buf}]
 
 # set_false_path -quiet -through [get_nets -hierarchical -filter {mr_ff == TRUE}]
 

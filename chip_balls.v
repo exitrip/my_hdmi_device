@@ -269,20 +269,48 @@ assign   led = {8{toogle}};
 
 wire clk_40Hz;
 clk_div #(.DIV(1000000)) 
-clk_div_250(
+clk_div_40(
   .clk(pclk), .ena(1'b1), .clk_out(clk_40Hz));
   
 wire [7:0] triangle_fader_1;
-cntr_triangle #(.WIDTH(7)) 
+cntr_triangle #(.WIDTH(9)) 
     lfo_tri_1(
     .clk(clk_40Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_1));
     
-wire [7:0] triangle_fader_2;
-cntr_triangle #(.WIDTH(7)) 
-    lfo_tri_2(
-    .clk(clk_40), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
-    .sclear(1'b0), .q(triangle_fader_2));
+/***
+        clk_11_4m,
+        clk_7_27m,
+        clk_6_66m,
+***/
+wire clk_11Hz, clk_7Hz, clk_6Hz;
+clk_div #(.DIV(1000000)) 
+clk_div_11(
+      .clk(clk_11_4m), .ena(1'b1), .clk_out(clk_11Hz));
+
+clk_div #(.DIV(1000000)) 
+clk_div_7(
+  .clk(clk_7_27m), .ena(1'b1), .clk_out(clk_7Hz));
+
+clk_div #(.DIV(1000000)) 
+clk_div_6(
+  .clk(clk_6_66m), .ena(1'b1), .clk_out(clk_6Hz));
+        
+wire [8:0] triangle_fader_r, triangle_fader_g, triangle_fader_b;
+cntr_triangle #(.WIDTH(8)) 
+    lfo_tri_r(
+    .clk(clk_11Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .sclear(1'b0), .q(triangle_fader_r));
+
+cntr_triangle #(.WIDTH(8)) 
+    lfo_tri_g(
+    .clk(clk_7Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .sclear(1'b0), .q(triangle_fader_g));
+    
+cntr_triangle #(.WIDTH(8)) 
+    lfo_tri_b(
+    .clk(clk_6Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .sclear(1'b0), .q(triangle_fader_b));
 /* */
 
 localparam N = 106;
@@ -298,10 +326,10 @@ generate
 //                 .START_Y( i*10 % y_res),
 //                 .DELTA_X( 1+(i) % 4 ),
 //                 .DELTA_Y( 1+(i) % 4 ),
-                 .START_X( (i*10 + x_res / 2) % x_res ),
-                 .START_Y( (i*10 + y_res / 2) % y_res ),
-                 .DELTA_X( 1+(i) % 4 ),
-                 .DELTA_Y( 1+(i) % 4  ),
+                 .START_X( (i*100 ) % x_res ),
+                 .START_Y( (i*50 ) % y_res ),
+                 .DELTA_X( i[0] ),
+                 .DELTA_Y( i[1]  ),
 //                 .BALL_WIDTH( 10 +i % 100 ),
 //                 .BALL_HEIGHT( 10 +i % 100 ),
                  .X_RES( x_res ),
@@ -310,8 +338,8 @@ generate
                  .clk(pclk),
                  .i_vcnt(vcnt),
                  .i_hcnt(hcnt),
-                 .width(triangle_fader_1),
-                 .height(triangle_fader_1),
+                 .width(triangle_fader_1[ (i%5 + 2):0]),
+                 .height(triangle_fader_1[7: (i % 3) ]),
                  //.in_opposite(in_opposite[i]),
                  .i_opposite(1'b0),
                  .o_draw(draw_ball[i])

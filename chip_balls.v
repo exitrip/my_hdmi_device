@@ -272,13 +272,13 @@ clk_div #(.DIV(1000000))
 clk_div_250(
   .clk(pclk), .ena(1'b1), .clk_out(clk_40Hz));
   
-reg [7:0] triangle_fader_1;
+wire [7:0] triangle_fader_1;
 cntr_triangle #(.WIDTH(7)) 
     lfo_tri_1(
     .clk(clk_40Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_1));
     
-reg [7:0] triangle_fader_2;
+wire [7:0] triangle_fader_2;
 cntr_triangle #(.WIDTH(7)) 
     lfo_tri_2(
     .clk(clk_40), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 

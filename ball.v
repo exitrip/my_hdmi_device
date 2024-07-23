@@ -38,9 +38,16 @@ parameter Y_RES = 480;
 wire [10:0] ball_xdiff = i_hcnt - ball_x;
 wire [10:0] ball_ydiff = i_vcnt - ball_y;
 
+wire [20:0] xd2 = ball_xdiff**2;
+wire [20:0] yd2 = ball_ydiff**2;
+wire [21:0] sum = xd2 + yd2;
+wire [21:0] diff = xd2 - yd2;
+wire [21:0] hd2 = height**2;
 
 always @(posedge clk) begin
-    o_draw <= ((ball_xdiff**2 + ball_ydiff**2) < height**2); //(ball_xdiff < width) && (ball_ydiff < height) &&
+    //looks cool cause of overflow... fixed by large regs above
+    //o_draw <= ((ball_xdiff**2 + ball_ydiff**2) < height**2); //(ball_xdiff < width) && (ball_ydiff < height) &&  #both look sick to good
+    o_draw <= (sum < hd2) || (diff < hd2);
 end
 
 wire ball_collision_x = (ball_x >= (X_RES - width));

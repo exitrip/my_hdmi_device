@@ -277,7 +277,7 @@ wire [7:0] triangle_fader_1;
 cntr_triangle #(.WIDTH(9)) 
     lfo_tri_1(
     .clk(clk_40Hz), .ena(ctl[6]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
-    .sclear(1'b0), .q(triangle_fader_1));
+    .sclear(clear[3]), .q(triangle_fader_1));
     
 /***
         clk_11_4m,
@@ -285,15 +285,15 @@ cntr_triangle #(.WIDTH(9))
         clk_6_66m,
 ***/
 wire clk_11Hz, clk_7Hz, clk_6Hz;
-clk_div #(.DIV(100000)) 
+clk_div #(.DIV(500000)) 
 clk_div_11(
       .clk(clk_11_4m), .ena(1'b1), .clk_out(clk_11Hz));
 
-clk_div #(.DIV(100000)) 
+clk_div #(.DIV(500000)) 
 clk_div_7(
   .clk(clk_7_27m), .ena(1'b1), .clk_out(clk_7Hz));
 
-clk_div #(.DIV(100000)) 
+clk_div #(.DIV(500000)) 
 clk_div_6(
   .clk(clk_6_66m), .ena(1'b1), .clk_out(clk_6Hz));
 
@@ -304,20 +304,20 @@ wire [8:0] triangle_fader_r, triangle_fader_g, triangle_fader_b;
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_r(
     .clk(clk_11Hz), .ena(ctl[0]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
-    .sclear(1'b0), .q(triangle_fader_r));
+    .sclear(clear[0]), .q(triangle_fader_r));
 
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_g(
     .clk(clk_7Hz), .ena(ctl[2]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
-    .sclear(1'b0), .q(triangle_fader_g));
+    .sclear(clear[1]), .q(triangle_fader_g));
     
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_b(
     .clk(clk_6Hz), .ena(ctl[4]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
-    .sclear(1'b0), .q(triangle_fader_b));
+    .sclear(clear[2]), .q(triangle_fader_b));
 /* */
 
-localparam N = 3;
+localparam N = 102;
 wire [N-1:0] draw_ball;
 
 //reg [N-1:0] in_opposite = 0;

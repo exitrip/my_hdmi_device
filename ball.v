@@ -20,6 +20,8 @@ module ball(
            input clk,
            input [10:0] i_vcnt,
            input [10:0] i_hcnt,
+           input [10:0] width,
+           input [10:0] height,
            input i_opposite,
            output reg o_draw
        );
@@ -28,21 +30,28 @@ parameter START_X = 0;
 parameter START_Y = 0;
 parameter DELTA_X = 1;
 parameter DELTA_Y = 1;
-parameter BALL_WIDTH = 30;
-parameter BALL_HEIGHT = 30;
+//parameter BALL_WIDTH = 30;
+//parameter BALL_HEIGHT = 30;
 parameter X_RES = 640;
 parameter Y_RES = 480;
 
-wire [10:0] ball_xdiff = i_hcnt - ball_x;
-wire [10:0] ball_ydiff = i_vcnt - ball_y;
+wire [10:0] ball_xdiff = (i_hcnt > ball_x)? i_hcnt - ball_x : ball_x - i_hcnt;
+wire [10:0] ball_ydiff = (i_vcnt > ball_y)? i_vcnt - ball_y : ball_y - i_vcnt;
 
+wire [20:0] xd2 = ball_xdiff**2;
+wire [20:0] yd2 = ball_ydiff**2;
+wire [21:0] sum = xd2 + yd2;
+wire [21:0] diff = xd2 - yd2;
+wire [21:0] hd2 = height**2;
 
 always @(posedge clk) begin
-    o_draw <= (ball_xdiff < BALL_WIDTH) && (ball_ydiff < BALL_HEIGHT);
+    //looks cool cause of overflow... fixed by large regs above
+    //o_draw <= ((ball_xdiff**2 + ball_ydiff**2) < height**2); //(ball_xdiff < width) && (ball_ydiff < height) &&  #both look sick to good
+    o_draw <= (sum < hd2) || (diff < hd2);
 end
 
-wire ball_collision_x = (ball_x >= (X_RES - BALL_WIDTH));
-wire ball_collision_y = (ball_y >= (Y_RES - BALL_HEIGHT));
+wire ball_collision_x = (ball_x >= (X_RES - width));
+wire ball_collision_y = (ball_y >= (Y_RES - height));
 
 reg [10:0] ball_x = START_X;
 reg [10:0] ball_y = START_Y;

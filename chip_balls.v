@@ -26,6 +26,7 @@ module chip_balls(
            output [3:0] led
 `elsif I9PLUS
            input clk_25mhz,
+           input [7:0] ctl,
            output [3:0] hdmi_p,
            output [3:0] hdmi_n,
            output led
@@ -275,7 +276,7 @@ clk_div_40(
 wire [7:0] triangle_fader_1;
 cntr_triangle #(.WIDTH(9)) 
     lfo_tri_1(
-    .clk(clk_40Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_40Hz), .ena(ctl[6]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_1));
     
 /***
@@ -295,25 +296,28 @@ clk_div_7(
 clk_div #(.DIV(1000000)) 
 clk_div_6(
   .clk(clk_6_66m), .ena(1'b1), .clk_out(clk_6Hz));
-        
+
+wire [3:0] clear;
+assign clear = {~ctl[7], ~ctl[5], ~ctl[3], ~ctl[1]};
+
 wire [8:0] triangle_fader_r, triangle_fader_g, triangle_fader_b;
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_r(
-    .clk(clk_11Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_11Hz), .ena(ctl[0]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_r));
 
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_g(
-    .clk(clk_7Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_7Hz), .ena(ctl[2]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_g));
     
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_b(
-    .clk(clk_6Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_6Hz), .ena(ctl[4]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_b));
 /* */
 
-localparam N = 106;
+localparam N = 88;
 wire [N-1:0] draw_ball;
 
 //reg [N-1:0] in_opposite = 0;
@@ -326,8 +330,8 @@ generate
 //                 .START_Y( i*10 % y_res),
 //                 .DELTA_X( 1+(i) % 4 ),
 //                 .DELTA_Y( 1+(i) % 4 ),
-                 .START_X( (i*100 ) % x_res ),
-                 .START_Y( (i*50 ) % y_res ),
+                 .START_X( (i*10 ) % x_res ),
+                 .START_Y( (i*5 ) % y_res ),
                  .DELTA_X( i[0] ),
                  .DELTA_Y( i[1]  ),
 //                 .BALL_WIDTH( 10 +i % 100 ),
@@ -340,7 +344,7 @@ generate
                  .i_hcnt(hcnt),
                  .width(triangle_fader_1[ (i%5 + 2):0]),
                  .height(triangle_fader_1[7: (i % 3) ]),
-                 //.in_opposite(in_opposite[i]),
+                //  .in_opposite(in_opposite[i]),
                  .i_opposite(1'b0),
                  .o_draw(draw_ball[i])
              );
@@ -447,9 +451,9 @@ always @(posedge pclk) begin
     vga_vsync <= vsync;
 
     if (~blank) begin        
-        vga_red   <= (stars || draw_ball[N/3-1:0] || draw_ball[(2*N/3-1):N/3-1] ? 8'hff : 8'h00);
-        vga_green <= (stars || draw_ball[(2*N/3)-1:N/3-1] ? 8'hff : 8'h00);
-        vga_blue  <= (stars || draw_ball[N-1:(2*N/3)-1] ? 8'hff : 8'h00);
+        vga_red   <= (draw_ball[N/3-1:0] || draw_ball[(2*N/3-1):N/3-1] ? triangle_fader_r : 8'h00);
+        vga_green <= (draw_ball[(2*N/3)-1:N/3-1] ? triangle_fader_g : 8'h00);
+        vga_blue  <= (draw_ball[N-1:(2*N/3)-1] ? triangle_fader_b : 8'h00);
     end
     else begin
         vga_red   <= 8'h0;

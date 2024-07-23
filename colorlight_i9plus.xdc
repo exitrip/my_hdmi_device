@@ -10,6 +10,16 @@ set_property PACKAGE_PIN A18 [get_ports led]
 set_property IOSTANDARD LVCMOS33 [get_ports led]
 # set_property DRIVE 12 [get_ports {led}]
 
+#inputs
+set_property -dict {PACKAGE_PIN R3 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {ctl[0]}]
+set_property -dict {PACKAGE_PIN M3 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {ctl[1]}]
+set_property -dict {PACKAGE_PIN V4 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {ctl[2]}]
+set_property -dict {PACKAGE_PIN R4 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {ctl[3]}]
+set_property -dict {PACKAGE_PIN T5 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {ctl[4]}]
+set_property -dict {PACKAGE_PIN J5 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {ctl[5]}]
+set_property -dict {PACKAGE_PIN J6 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {ctl[6]}]
+set_property -dict {PACKAGE_PIN W5 IOSTANDARD LVCMOS33 PULLTYPE PULLUP} [get_ports {ctl[7]}]
+
 # # sdram_clock:0
 # set_property LOC E14 [get_ports {sdram_clock}]
 # set_property IOSTANDARD LVCMOS33 [get_ports {sdram_clock}]

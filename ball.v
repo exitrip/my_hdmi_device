@@ -40,7 +40,7 @@ wire [10:0] ball_ydiff = i_vcnt - ball_y;
 
 
 always @(posedge clk) begin
-    o_draw <= (ball_xdiff < width) && (ball_ydiff < height);
+    o_draw <= ((ball_xdiff**2 + ball_ydiff**2) < height**2); //(ball_xdiff < width) && (ball_ydiff < height) &&
 end
 
 wire ball_collision_x = (ball_x >= (X_RES - width));

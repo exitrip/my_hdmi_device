@@ -285,15 +285,15 @@ cntr_triangle #(.WIDTH(9))
         clk_6_66m,
 ***/
 wire clk_11Hz, clk_7Hz, clk_6Hz;
-clk_div #(.DIV(1000000)) 
+clk_div #(.DIV(100000)) 
 clk_div_11(
       .clk(clk_11_4m), .ena(1'b1), .clk_out(clk_11Hz));
 
-clk_div #(.DIV(1000000)) 
+clk_div #(.DIV(100000)) 
 clk_div_7(
   .clk(clk_7_27m), .ena(1'b1), .clk_out(clk_7Hz));
 
-clk_div #(.DIV(1000000)) 
+clk_div #(.DIV(100000)) 
 clk_div_6(
   .clk(clk_6_66m), .ena(1'b1), .clk_out(clk_6Hz));
 
@@ -317,7 +317,7 @@ cntr_triangle #(.WIDTH(8))
     .sclear(1'b0), .q(triangle_fader_b));
 /* */
 
-localparam N = 88;
+localparam N = 3;
 wire [N-1:0] draw_ball;
 
 //reg [N-1:0] in_opposite = 0;
@@ -330,8 +330,8 @@ generate
 //                 .START_Y( i*10 % y_res),
 //                 .DELTA_X( 1+(i) % 4 ),
 //                 .DELTA_Y( 1+(i) % 4 ),
-                 .START_X( (i*10 ) % x_res ),
-                 .START_Y( (i*5 ) % y_res ),
+                 .START_X( (i*5 ) % x_res ),
+                 .START_Y( (i*4 ) % y_res ),
                  .DELTA_X( i[0] ),
                  .DELTA_Y( i[1]  ),
 //                 .BALL_WIDTH( 10 +i % 100 ),

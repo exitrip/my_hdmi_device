@@ -23,6 +23,7 @@ module ball(
            input [10:0] width,
            input [10:0] height,
            input i_opposite,
+           input [3:0] mode,
            output reg o_draw
        );
 
@@ -47,7 +48,7 @@ wire [21:0] hd2 = height**2;
 always @(posedge clk) begin
     //looks cool cause of overflow... fixed by large regs above
     //o_draw <= ((ball_xdiff**2 + ball_ydiff**2) < height**2); //(ball_xdiff < width) && (ball_ydiff < height) &&  #both look sick to good
-    o_draw <= (sum < hd2) || (diff < hd2);
+    o_draw <= mode[0]? (sum < hd2) || (diff < hd2) : ((ball_xdiff < width) || (ball_ydiff < height) ? ((ball_xdiff**2 + ball_ydiff**2) < height**2) : 1'b0);
 end
 
 wire ball_collision_x = (ball_x >= (X_RES - width));

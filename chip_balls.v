@@ -457,7 +457,7 @@ always @(negedge pclk) begin
         // pixBuf[0] <= (vga_red > 8'h00) ? (vga_red - 1) : 8'h00;
         // pixBuf[1] <= (vga_green > 8'h00) ? (vga_green - 1) : 8'h00;
         // pixBuf[2] <= (vga_blue > 8'h00) ? (vga_blue - 1) : 8'h00;
-        // pixBuf[0] <= in_cnt; //8'hED;
+        // pixBuf[0] <= in_cnt_buf; //8'hED;
         // pixBuf[1] <= 8'h00;
         // pixBuf[2] <= 8'hED; 
         // pixBuf[3] <= 8'h00;
@@ -474,30 +474,31 @@ always @(posedge pclk) begin
     if (~blank) begin 
         case (mode)
             2'b10: begin
-                vga_red <= triangle_fader_r + ((pixBufHead >= in_cnt)? pixBuf[pixBufHead-in_cnt][23:16] : pixBuf[in_cnt- pixBufHead + x_res][23:16]);
-                vga_green <= triangle_fader_g + ((pixBufHead >= in_cnt)? pixBuf[pixBufHead-in_cnt][15:8] : pixBuf[in_cnt- pixBufHead + x_res][15:8]);
-                vga_blue <= triangle_fader_b + ((pixBufHead >= in_cnt)? pixBuf[pixBufHead-in_cnt][7:0] : pixBuf[in_cnt- pixBufHead + x_res][7:0]);
+                vga_red <= triangle_fader_r + ((pixBufHead >= in_cnt_buf)? pixBuf[pixBufHead-in_cnt_buf][23:16] : pixBuf[in_cnt_buf- pixBufHead + x_res][23:16]);
+                vga_green <= triangle_fader_g + ((pixBufHead >= in_cnt_buf)? pixBuf[pixBufHead-in_cnt_buf][15:8] : pixBuf[in_cnt_buf- pixBufHead + x_res][15:8]);
+                vga_blue <= triangle_fader_b + ((pixBufHead >= in_cnt_buf)? pixBuf[pixBufHead-in_cnt_buf][7:0] : pixBuf[in_cnt_buf- pixBufHead + x_res][7:0]);
             end
             2'b01: begin
                 // vga_red   <= triangle_fader_r & (vcnt % 8'hff);
                 // vga_green <= triangle_fader_r & ((vcnt + 333)% 8'hff);
                 // vga_blue  <= triangle_fader_r & ((vcnt + 666) % 8'hff);        
-                // vga_red   <= (draw_ball[N/3-1:0] || draw_ball[(2*N/3-1):N/3-1] ? triangle_fader_r : 8'h00);
+                vga_red   <= (draw_ball[N/3-1:0] || draw_ball[(2*N/3-1):N/3-1] ? triangle_fader_r : 8'h00);
                 vga_green <= (draw_ball[(2*N/3)-1:N/3-1] ? triangle_fader_g : 8'h00);
                 vga_blue  <= (draw_ball[N-1:(2*N/3)-1] ? triangle_fader_b : 8'h00);
             end
-            2'b00: begin        
-                vga_red   <= triangle_fader_r ^ (vcnt % in_cnt);
-                vga_green <= triangle_fader_g ^ ((vcnt + in_cnt) % in_cnt);
-                vga_blue  <= triangle_fader_b ^ ((vcnt + (2* in_cnt)) % in_cnt);
+            2'b11: begin        
+                vga_red   <= triangle_fader_r & (vcnt % in_cnt_hbar);
+                vga_green <= triangle_fader_r & ((vcnt + 333)% in_cnt_hbar);
+                vga_blue  <= triangle_fader_r & ((vcnt + 666) % in_cnt_hbar);
                 // vga_red <= pixBuf[0];
                 // vga_green <= pixBuf[1];
                 // vga_blue <= pixBuf[2];
             end
-            default: begin 
-                vga_red   <= triangle_fader_r & (vcnt % 8'hff);
-                vga_green <= triangle_fader_r & ((vcnt + 333)% 8'hff);
-                vga_blue  <= triangle_fader_r & ((vcnt + 666) % 8'hff);
+            default: begin
+                vga_red   <= triangle_fader_r ^ (vcnt % in_cnt_hbar);
+                vga_green <= triangle_fader_g ^ ((vcnt + in_cnt_hbar) % in_cnt_hbar);
+                vga_blue  <= triangle_fader_b ^ ((vcnt + (2* in_cnt_hbar)) % in_cnt_hbar); 
+                
             end
         endcase
     end
@@ -514,20 +515,44 @@ end
 always @(posedge vsync) begin
 end
 
+wire resetCnt;
+assign resetCnt = ~ctl[4];
 
-reg [BUF_DEPTH:0] in_cnt = {BUF_DEPTH{1'b0}} + 1;
-wire [1:0] inc_dec;
-assign inc_dec = {~ctl[2], ~ctl[0]};
+reg [BUF_DEPTH:0] in_cnt_buf = {BUF_DEPTH{1'b0}} + 1;
+wire [1:0] inc_dec_buf;
+assign inc_dec_buf = {~ctl[2], ~ctl[0]};
 
 always @(posedge new_frame) begin
-    if (in_cnt == {BUF_DEPTH{1'b1}}) begin
-        in_cnt <= in_cnt - inc_dec[1];
+    if (resetCnt == 1'b1) begin
+        in_cnt_buf = {BUF_DEPTH{1'b0}} + 1;
     end
-    else if (in_cnt <= ({BUF_DEPTH{1'b0}} + 1)) begin
-        in_cnt <= in_cnt + inc_dec[0];
+    else if (in_cnt_buf == {BUF_DEPTH{1'b1}}) begin
+        in_cnt_buf <= in_cnt_buf - inc_dec_buf[1];
+    end
+    else if (in_cnt_buf <= ({BUF_DEPTH{1'b0}} + 1)) begin
+        in_cnt_buf <= in_cnt_buf + inc_dec_buf[0];
     end
     else begin
-        in_cnt <= in_cnt + inc_dec[0] - inc_dec[1];
+        in_cnt_buf <= in_cnt_buf + inc_dec_buf[0] - inc_dec_buf[1];
+    end
+end
+
+reg [7:0] in_cnt_hbar = 8'h01;
+wire [1:0] inc_dec_hbar;
+assign inc_dec_hbar = {~ctl[2], ~ctl[0]};
+
+always @(posedge new_frame) begin
+    if (resetCnt == 1'b1) begin
+        in_cnt_hbar = 8'h01;
+    end
+    else if (in_cnt_hbar == 8'hff) begin
+        in_cnt_hbar <= in_cnt_hbar - inc_dec_hbar[1];
+    end
+    else if (in_cnt_hbar <= 8'h01) begin
+        in_cnt_hbar <= in_cnt_hbar + inc_dec_hbar[0];
+    end
+    else begin
+        in_cnt_hbar <= in_cnt_hbar + inc_dec_hbar[0] - inc_dec_hbar[1];
     end
 end
 

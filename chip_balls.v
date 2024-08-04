@@ -448,8 +448,8 @@ end
 
 wire [1:0] mode;
 assign mode = {~ctl[5], ~ctl[3]};
-localparam BUF_DEPTH = 16;
-reg [10:0] pixBufHead = 0;
+localparam BUF_DEPTH = 19;
+reg [BUF_DEPTH:0] pixBufHead = 0;
 reg [23:0] pixBuf [BUF_DEPTH:0];
 
 always @(negedge pclk) begin
@@ -474,9 +474,9 @@ always @(posedge pclk) begin
     if (~blank) begin 
         case (mode)
             2'b10: begin
-                vga_red <= triangle_fader_r + ((pixBufHead >= in_cnt_buf)? pixBuf[pixBufHead-in_cnt_buf][23:16] : pixBuf[in_cnt_buf- pixBufHead + x_res][23:16]);
-                vga_green <= triangle_fader_g + ((pixBufHead >= in_cnt_buf)? pixBuf[pixBufHead-in_cnt_buf][15:8] : pixBuf[in_cnt_buf- pixBufHead + x_res][15:8]);
-                vga_blue <= triangle_fader_b + ((pixBufHead >= in_cnt_buf)? pixBuf[pixBufHead-in_cnt_buf][7:0] : pixBuf[in_cnt_buf- pixBufHead + x_res][7:0]);
+                vga_red <= triangle_fader_r + ((pixBufHead >= in_cnt_buf)? pixBuf[pixBufHead-in_cnt_buf][23:16]/2 : pixBuf[in_cnt_buf- pixBufHead + x_res][23:16]);
+                vga_green <= triangle_fader_g + ((pixBufHead >= in_cnt_buf)? pixBuf[pixBufHead-in_cnt_buf][15:8]/2 : pixBuf[in_cnt_buf- pixBufHead + x_res][15:8]);
+                vga_blue <= triangle_fader_b + ((pixBufHead >= in_cnt_buf)? pixBuf[pixBufHead-in_cnt_buf][7:0]/2 : pixBuf[in_cnt_buf- pixBufHead + x_res][7:0]);
             end
             2'b01: begin
                 // vga_red   <= triangle_fader_r & (vcnt % 8'hff);
@@ -522,7 +522,7 @@ reg [BUF_DEPTH:0] in_cnt_buf = {BUF_DEPTH{1'b0}} + 1;
 wire [1:0] inc_dec_buf;
 assign inc_dec_buf = {~ctl[2], ~ctl[0]};
 
-always @(posedge new_frame) begin
+always @(posedge hsync) begin
     if (resetCnt == 1'b1) begin
         in_cnt_buf = {BUF_DEPTH{1'b0}} + 1;
     end

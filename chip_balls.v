@@ -287,15 +287,15 @@ cntr_triangle #(.WIDTH(9))
 wire clk_11Hz, clk_7Hz, clk_6Hz;
 clk_div #(.DIV(100000)) 
 clk_div_11(
-      .clk(clk_11_4m), .ena(1'b1), .clk_out(clk_11Hz));
+      .clk(clk_11_4m), .ena(ctl[7]), .clk_out(clk_11Hz));
 
 clk_div #(.DIV(100000)) 
 clk_div_7(
-  .clk(clk_7_27m), .ena(1'b1), .clk_out(clk_7Hz));
+  .clk(clk_7_27m), .ena(ctl[7]), .clk_out(clk_7Hz));
 
 clk_div #(.DIV(100000)) 
 clk_div_6(
-  .clk(clk_6_66m), .ena(1'b1), .clk_out(clk_6Hz));
+  .clk(clk_6_66m), .ena(ctl[7]), .clk_out(clk_6Hz));
 
 // wire [3:0] clear;
 // assign clear = {~ctl[7], ~ctl[5], ~ctl[3], ~ctl[1]};
@@ -303,17 +303,17 @@ clk_div_6(
 wire [8:0] triangle_fader_r, triangle_fader_g, triangle_fader_b;
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_r(
-    .clk(clk_11Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_11Hz), .ena(ctl[7]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_r));
 
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_g(
-    .clk(clk_7Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_7Hz), .ena(ctl[7]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_g));
     
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_b(
-    .clk(clk_6Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_6Hz), .ena(ctl[7]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_b));
 /* */
 
@@ -448,7 +448,7 @@ end
 
 wire [1:0] mode;
 assign mode = {~ctl[5], ~ctl[3]};
-localparam BUF_DEPTH = 11;
+localparam BUF_DEPTH = 16;
 reg [10:0] pixBufHead = 0;
 reg [23:0] pixBuf [BUF_DEPTH:0];
 
@@ -461,7 +461,7 @@ always @(negedge pclk) begin
         // pixBuf[1] <= 8'h00;
         // pixBuf[2] <= 8'hED; 
         // pixBuf[3] <= 8'h00;
-        pixBufHead = (pixBufHead < x_res)? pixBufHead + 1: {BUF_DEPTH{1'b0}};  
+        pixBufHead = (pixBufHead < (x_res*y_res))? pixBufHead + 1: {BUF_DEPTH{1'b0}};  
         pixBuf[pixBufHead] = {vga_red, vga_green, vga_blue};
     end
 end

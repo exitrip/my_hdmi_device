@@ -277,7 +277,7 @@ wire [7:0] triangle_fader_1;
 cntr_triangle #(.WIDTH(9)) 
     lfo_tri_1(
     .clk(clk_40Hz), .ena(ctl[6]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
-    .sclear(~ctl[7]), .q(triangle_fader_1));
+    .sclear(1'b0), .q(triangle_fader_1));
     
 /***
         clk_11_4m,
@@ -303,21 +303,21 @@ clk_div_6(
 wire [8:0] triangle_fader_r, triangle_fader_g, triangle_fader_b;
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_r(
-    .clk(clk_11Hz), .ena(ctl[0]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_11Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_r));
 
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_g(
-    .clk(clk_7Hz), .ena(ctl[2]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_7Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_g));
     
 cntr_triangle #(.WIDTH(8)) 
     lfo_tri_b(
-    .clk(clk_6Hz), .ena(ctl[4]), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
+    .clk(clk_6Hz), .ena(1'b1), .rst(1'b0), .sload(1'b0), .sdata(8'b0), 
     .sclear(1'b0), .q(triangle_fader_b));
 /* */
 
-localparam N = 7;
+localparam N = 17;
 wire [N-1:0] draw_ball;
 
 //reg [N-1:0] in_opposite = 0;
@@ -342,8 +342,8 @@ generate
                  .clk(pclk),
                  .i_vcnt(vcnt),
                  .i_hcnt(hcnt),
-                 .width(triangle_fader_1[ (i%5 + 2):0]),
-                 .height(triangle_fader_1[7: (i % 3) ]),
+                 .width(triangle_fader_1[ (i%5 + 1):0]),
+                 .height(triangle_fader_1[6: (i % 3) ]),
                 //  .in_opposite(in_opposite[i]),
                  .i_opposite(i[0]),
                  .mode(ctl[1]),
@@ -448,23 +448,21 @@ end
 
 wire [1:0] mode;
 assign mode = {~ctl[5], ~ctl[3]};
+localparam BUF_DEPTH = 11;
+reg [10:0] pixBufHead = 0;
+reg [23:0] pixBuf [BUF_DEPTH:0];
 
-reg [7:0] pixBuf [2:0];
 always @(negedge pclk) begin
     if (~blank) begin 
         // pixBuf[0] <= (vga_red > 8'h00) ? (vga_red - 1) : 8'h00;
         // pixBuf[1] <= (vga_green > 8'h00) ? (vga_green - 1) : 8'h00;
         // pixBuf[2] <= (vga_blue > 8'h00) ? (vga_blue - 1) : 8'h00;
-        pixBuf[0] <= 8'hED;
-        pixBuf[1] <= 8'h00;
-        pixBuf[2] <= 8'hED; 
-        pixBuf[3] <= 8'h00; 
-    end
-    else begin
-        pixBuf[0] <= 8'hED;
-        pixBuf[1] <= 8'hED;
-        pixBuf[2] <= 8'hED;
-        pixBuf[3] <= 8'h00;       
+        // pixBuf[0] <= in_cnt; //8'hED;
+        // pixBuf[1] <= 8'h00;
+        // pixBuf[2] <= 8'hED; 
+        // pixBuf[3] <= 8'h00;
+        pixBufHead = (pixBufHead < x_res)? pixBufHead + 1: {BUF_DEPTH{1'b0}};  
+        pixBuf[pixBufHead] = {vga_red, vga_green, vga_blue};
     end
 end
 
@@ -475,18 +473,26 @@ always @(posedge pclk) begin
 
     if (~blank) begin 
         case (mode)
-            2'b00: begin        
-                vga_red   <= (draw_ball[N/3-1:0] || draw_ball[(2*N/3-1):N/3-1] ? triangle_fader_r : 8'h00);
+            2'b10: begin
+                vga_red <= triangle_fader_r + ((pixBufHead >= in_cnt)? pixBuf[pixBufHead-in_cnt][23:16] : pixBuf[in_cnt- pixBufHead + x_res][23:16]);
+                vga_green <= triangle_fader_g + ((pixBufHead >= in_cnt)? pixBuf[pixBufHead-in_cnt][15:8] : pixBuf[in_cnt- pixBufHead + x_res][15:8]);
+                vga_blue <= triangle_fader_b + ((pixBufHead >= in_cnt)? pixBuf[pixBufHead-in_cnt][7:0] : pixBuf[in_cnt- pixBufHead + x_res][7:0]);
+            end
+            2'b01: begin
+                // vga_red   <= triangle_fader_r & (vcnt % 8'hff);
+                // vga_green <= triangle_fader_r & ((vcnt + 333)% 8'hff);
+                // vga_blue  <= triangle_fader_r & ((vcnt + 666) % 8'hff);        
+                // vga_red   <= (draw_ball[N/3-1:0] || draw_ball[(2*N/3-1):N/3-1] ? triangle_fader_r : 8'h00);
                 vga_green <= (draw_ball[(2*N/3)-1:N/3-1] ? triangle_fader_g : 8'h00);
                 vga_blue  <= (draw_ball[N-1:(2*N/3)-1] ? triangle_fader_b : 8'h00);
             end
-            2'b01: begin        
-                // vga_red   <= triangle_fader_r ^ (hcnt % 8'hff);
-                // vga_green <= triangle_fader_r ^ ((hcnt + 333)% 8'hff);
-                // vga_blue  <= triangle_fader_r ^ ((hcnt + 666) % 8'hff);
-                vga_red <= pixBuf[0];
-                vga_green <= pixBuf[1];
-                vga_blue <= pixBuf[2];
+            2'b00: begin        
+                vga_red   <= triangle_fader_r ^ (vcnt % in_cnt);
+                vga_green <= triangle_fader_g ^ ((vcnt + in_cnt) % in_cnt);
+                vga_blue  <= triangle_fader_b ^ ((vcnt + (2* in_cnt)) % in_cnt);
+                // vga_red <= pixBuf[0];
+                // vga_green <= pixBuf[1];
+                // vga_blue <= pixBuf[2];
             end
             default: begin 
                 vga_red   <= triangle_fader_r & (vcnt % 8'hff);
@@ -499,6 +505,29 @@ always @(posedge pclk) begin
         vga_red   <= 8'h0;
         vga_blue  <= 8'h0;
         vga_green <= 8'h0;
+    end
+end
+
+always @(posedge hsync) begin
+end
+
+always @(posedge vsync) begin
+end
+
+
+reg [BUF_DEPTH:0] in_cnt = {BUF_DEPTH{1'b0}} + 1;
+wire [1:0] inc_dec;
+assign inc_dec = {~ctl[2], ~ctl[0]};
+
+always @(posedge new_frame) begin
+    if (in_cnt == {BUF_DEPTH{1'b1}}) begin
+        in_cnt <= in_cnt - inc_dec[1];
+    end
+    else if (in_cnt <= ({BUF_DEPTH{1'b0}} + 1)) begin
+        in_cnt <= in_cnt + inc_dec[0];
+    end
+    else begin
+        in_cnt <= in_cnt + inc_dec[0] - inc_dec[1];
     end
 end
 
